@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuestro Bebé Viene en Camino</title>
+    <!-- Carga de Tailwind CSS --><script src="https://cdn.tailwindcss.com"></script>
+    <!-- Carga de la fuente Inter --><link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Estilos (sin cambios en la base) */
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Fondo actualizado con gradiente más grande para animación */
+            background: linear-gradient(135deg, #fde6f1, #e6f0ff, #fce7f3, #e0e7ff);
+            background-size: 200% 200%; /* Gradiente más grande para permitir movimiento */
+            transition: background 1.5s ease-in-out;
+            overflow: hidden;
+            animation: softBackgroundChange 15s ease-in-out infinite; /* Animación de fondo aplicada */
+        }
+        body.is-boy { 
+            background: linear-gradient(135deg, #d4e7ff 0%, #a8cfff 100%); 
+            animation: none; /* Detener animación de fondo al revelar */
+        }
+        body.is-girl { 
+            background: linear-gradient(135deg, #ffe9f4 0%, #ffcde6 100%); 
+            animation: none; /* Detener animación de fondo al revelar */
+        }
+        .bubbles { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; overflow: hidden; }
+        .bubbles span { position: absolute; bottom: -150px; border-radius: 50%; opacity: 0.1; animation: floatUp 25s infinite linear; }
+        .bubbles span:nth-child(odd) { background-color: #f472b6; }
+        .bubbles span:nth-child(even) { background-color: #60a5fa; }
+        @keyframes floatUp {
+            0% { transform: translateY(0) translateX(0); opacity: 0.1; }
+            50% { opacity: 0.3; }
+            100% { transform: translateY(-120vh) translateX(calc(100vw * (0.5 - var(--rand-translate-x, 0.5)))); opacity: 0; }
+        }
+        body.is-boy .bubbles span:nth-child(odd),
+        body.is-girl .bubbles span:nth-child(even) { display: none; }
+        body.is-boy .bubbles span:nth-child(even) { opacity: 0.2; animation-duration: 15s; }
+        body.is-girl .bubbles span:nth-child(odd) { opacity: 0.2; animation-duration: 15s; }
+        .title-font { font-family: 'Playfair Display', serif; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in { animation: fadeIn 1s ease-out forwards; }
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+        .confetti-piece { position: absolute; width: 10px; height: 20px; opacity: 0; top: 0; animation: confetti-fall 5s infinite linear; }
+        body.is-boy .confetti-piece { background-color: #3b82f6; }
+        body.is-girl .confetti-piece { background-color: #ec4899; }
+        
+        /* Animación de "vibración" para error */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .shake-error {
+            animation: shake 0.3s ease-in-out;
+        }
+
+        /* Nueva animación para el fondo principal */
+        @keyframes softBackgroundChange {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Estilos para el cambio de fondo de los números */
+        .countdown-segment {
+            transition: background-image 3.5s ease-in-out; /* Transición más suave (antes 2s) */
+        }
+
+        /* Definición de los degradados */
+        .gradient-pink-blue { background-image: linear-gradient(135deg, #f472b6 0%, #60a5fa 100%); } /* Rosa a Azul */
+        .gradient-blue-pink { background-image: linear-gradient(135deg, #60a5fa 0%, #f472b6 100%); } /* Azul a Rosa */
+        .gradient-soft-pink { background-image: linear-gradient(135deg, #fbcfe8 0%, #f472b6 100%); } /* Rosa suave */
+        .gradient-soft-blue { background-image: linear-gradient(135deg, #bfdbfe 0%, #60a5fa 100%); } /* Azul suave */
+
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen text-gray-800">
+
+    <!-- Contenedor de Burbujas y Confeti --><div class="bubbles" id="bubbles-container"></div>
+    <div class="absolute top-0 left-0 w-full h-full overflow-hidden z-20" id="confetti-container"></div>
+
+    <!-- Contenedor Principal --><main class="relative z-10 w-11/12 max-w-2xl p-8 bg-white/80 rounded-3xl shadow-2xl backdrop-blur-lg text-center md:p-12">
+
+        <!-- Estado 1: Antes de la Revelación (Contador) --><div id="pre-reveal" class="fade-in">
+            <h1 class="text-4xl font-bold title-font text-slate-700 md:text-5xl">¡Nuestro bebé!</h1>
+            <p class="mt-4 text-xl text-slate-600">¿Será...?</p>
+            <!-- Contenedor de contador ajustado para móviles con 'gap-2' y 'sm:gap-4' -->
+            <div class="flex justify-center gap-2 sm:gap-4 my-8 md:gap-8">
+                <!-- Días --><div class="text-center">
+                    <!-- Clases de tamaño ajustadas para móviles (text-4xl, px-2, py-2) -->
+                    <div id="days" class="text-4xl px-2 py-2 sm:text-5xl sm:px-4 sm:py-3 md:text-7xl md:px-6 md:py-4 font-black text-white rounded-xl countdown-segment">00</div>
+                    <span class="mt-2 text-xs font-semibold tracking-wider text-slate-500 uppercase">Días</span>
+                </div>
+                <!-- Horas --><div class="text-center">
+                    <div id="hours" class="text-4xl px-2 py-2 sm:text-5xl sm:px-4 sm:py-3 md:text-7xl md:px-6 md:py-4 font-black text-white rounded-xl countdown-segment">00</div>
+                    <span class="mt-2 text-xs font-semibold tracking-wider text-slate-500 uppercase">Horas</span>
+                </div>
+                <!-- Minutos --><div class="text-center">
+                    <div id="minutes" class="text-4xl px-2 py-2 sm:text-5xl sm:px-4 sm:py-3 md:text-7xl md:px-6 md:py-4 font-black text-white rounded-xl countdown-segment">00</div>
+                    <span class="mt-2 text-xs font-semibold tracking-wider text-slate-500 uppercase">Minutos</span>
+                </div>
+                <!-- Segundos --><div class="text-center">
+                    <div id="seconds" class="text-4xl px-2 py-2 sm:text-5xl sm:px-4 sm:py-3 md:text-7xl md:px-6 md:py-4 font-black text-white rounded-xl countdown-segment">00</div>
+                    <span class="mt-2 text-xs font-semibold tracking-wider text-slate-500 uppercase">Segundos</span>
+                </div>
+            </div>
+            <p class="text-lg text-slate-600">...para saber si es <span class="font-bold text-blue-500">niño</span> o <span class="font-bold text-pink-500">niña</span>!</p>
+            <p class="mt-2 text-sm text-slate-500" id="reveal-time-text"></p>
+        </div>
+
+        <!-- Estado 2: Petición de Código (Oculto por defecto) --><div id="password-prompt" class="hidden">
+            <h2 class="text-3xl font-bold title-font text-slate-700">¡Llegó el momento!</h2>
+            <p class="mt-4 text-lg text-slate-600">Ingresa el código secreto para revelar el género.</p>
+            <div class="mt-6">
+                <input type="text" id="password-input" class="w-full max-w-xs px-4 py-3 text-lg text-center border-2 border-slate-300 rounded-xl focus:border-pink-500 focus:ring-2 focus:ring-pink-300 outline-none transition-all" placeholder="Código Secreto...">
+                <button id="password-button" class="w-full max-w-xs px-6 py-3 mt-4 text-lg font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all">
+                    Revelar
+                </button>
+            </div>
+            <!-- Mensaje de error --><p id="error-message" class="mt-4 text-red-600 font-semibold h-6"></p>
+        </div>
+
+        <!-- Estado 3: Después de la Revelación (Oculto por defecto) --><div id="post-reveal" class="hidden">
+            <h1 id="reveal-title" class="text-6xl font-black title-font md:text-8xl"></h1>
+            <p id="reveal-message" class="mt-6 text-2xl text-slate-700"></p>
+            <img id="reveal-image" src="" alt="Revelación" class="w-48 h-48 mx-auto mt-8 rounded-full shadow-lg" onerror="this.style.display='none'">
+        </div>
+
+    </main>
+
+    <script>
+        // --- ¡CONFIGURACIÓN IMPORTANTE! ---
+        
+        // 1. Define la fecha y hora de la revelación (Hora de Costa Rica, UTC-6)
+        const REVEAL_DATE = new Date('2025-11-12T19:00:00-06:00');
+
+        // 2. Define la CONTRASEÑA que tus invitados deben escribir.
+        const REQUIRED_PASSWORD = "amor"; 
+
+        // 3. Define los "códigos encriptados" para cada género.
+        // NO TOQUES ESTOS VALORES
+        const BOY_KEY = "Ym95";    // Esto es 'boy' en Base64
+        const GIRL_KEY = "Z2lybA=="; // Esto es 'girl' en Base64
+
+        // 4. ¡AQUÍ ESTÁ EL SECRETO!
+        // Copia el BOY_KEY si es niño, o el GIRL_KEY si es niña.
+        const FINAL_REVEAL_KEY = "Ym95"; // Cambia esto por GIRL_KEY si es niña
+
+        // --- FIN DE LA CONFIGURACIÓN ---
+
+        // Elementos del DOM
+        const daysEl = document.getElementById('days');
+        const hoursEl = document.getElementById('hours');
+        const minutesEl = document.getElementById('minutes');
+        const secondsEl = document.getElementById('seconds');
+        
+        const preRevealEl = document.getElementById('pre-reveal');
+        const postRevealEl = document.getElementById('post-reveal');
+        const passwordPromptEl = document.getElementById('password-prompt');
+        
+        const passwordInput = document.getElementById('password-input');
+        const passwordButton = document.getElementById('password-button');
+        const errorMessageEl = document.getElementById('error-message');
+        
+        const revealTitleEl = document.getElementById('reveal-title');
+        const revealMessageEl = document.getElementById('reveal-message');
+        const revealImageEl = document.getElementById('reveal-image');
+
+        const bubblesContainer = document.getElementById('bubbles-container');
+        const confettiContainer = document.getElementById('confetti-container');
+
+        // Referencias a todos los segmentos del contador
+        const countdownSegments = document.querySelectorAll('.countdown-segment');
+        // Paletas de degradados para alternar
+        const gradientPalettes = [
+            'gradient-pink-blue', // Rosa a Azul
+            'gradient-blue-pink', // Azul a Rosa
+            'gradient-soft-pink', // Rosa más suave
+            'gradient-soft-blue'  // Azul más suave
+        ];
+        let currentGradientIndex = 0;
+
+        // Función para formatear el número
+        function formatTime(time) {
+            return time < 10 ? `0${time}` : time;
+        }
+
+        // Función principal del contador
+        function updateCountdown() {
+            const now = new Date();
+            const diff = REVEAL_DATE.getTime() - now.getTime();
+
+            if (diff <= 0) {
+                clearInterval(countdownInterval);
+                clearInterval(gradientChangeInterval); // Detener el cambio de fondo
+                showPasswordPrompt();
+                return;
+            }
+
+            const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+            daysEl.innerText = formatTime(d);
+            hoursEl.innerText = formatTime(h);
+            minutesEl.innerText = formatTime(m);
+            secondsEl.innerText = formatTime(s);
+        }
+
+        // Función para cambiar suavemente el fondo de los segmentos
+        function changeCountdownBackground() {
+            // Eliminar todas las clases de gradiente existentes
+            countdownSegments.forEach(segment => {
+                gradientPalettes.forEach(palette => segment.classList.remove(palette));
+            });
+
+            // Añadir la nueva clase de gradiente
+            countdownSegments.forEach(segment => {
+                segment.classList.add(gradientPalettes[currentGradientIndex]);
+            });
+
+            // Avanzar al siguiente gradiente
+            currentGradientIndex = (currentGradientIndex + 1) % gradientPalettes.length;
+        }
+        
+        // Función para mostrar la petición de contraseña
+        function showPasswordPrompt() {
+            preRevealEl.style.display = 'none';
+            passwordPromptEl.style.display = 'block';
+            passwordPromptEl.classList.add('fade-in');
+            passwordInput.focus();
+        }
+        
+        // Función para revisar la contraseña
+        function checkPassword() {
+            const input = passwordInput.value.trim();
+            
+            if (input.toLowerCase() === REQUIRED_PASSWORD.toLowerCase()) {
+                errorMessageEl.innerText = '';
+                passwordPromptEl.style.display = 'none';
+                revealGender();
+            } else {
+                errorMessageEl.innerText = '¡Código incorrecto! Intenta de nuevo.';
+                passwordInput.classList.add('shake-error');
+                setTimeout(() => {
+                    passwordInput.classList.remove('shake-error');
+                }, 300);
+            }
+        }
+        
+        passwordButton.addEventListener('click', checkPassword);
+        passwordInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkPassword();
+            }
+        });
+
+        // Función para mostrar la revelación
+        function revealGender() {
+            let gender = '';
+            try {
+                const decodedKey = atob(FINAL_REVEAL_KEY);
+                
+                if (decodedKey === atob(BOY_KEY)) {
+                    gender = 'boy';
+                } else if (decodedKey === atob(GIRL_KEY)) {
+                    gender = 'girl';
+                } else {
+                    gender = 'boy'; 
+                    console.error("FINAL_REVEAL_KEY no coincide con BOY_KEY o GIRL_KEY.");
+                }
+
+            } catch (e) {
+                console.error("Error al decodificar la llave secreta:", e);
+                gender = 'boy'; // Fallback
+            }
+
+            preRevealEl.style.display = 'none';
+            passwordPromptEl.style.display = 'none';
+            postRevealEl.style.display = 'block';
+            postRevealEl.classList.add('fade-in');
+
+            if (gender === 'boy') {
+                document.body.classList.add('is-boy');
+                revealTitleEl.innerText = '¡Es un Niño!';
+                revealTitleEl.style.color = '#3b82f6'; // Azul
+                revealMessageEl.innerText = '¡Nuestra familia crece con un príncipe!';
+            } else {
+                document.body.classList.add('is-girl');
+                revealTitleEl.innerText = '¡Es una Niña!';
+                revealTitleEl.style.color = '#ec4899'; // Rosa
+                revealMessageEl.innerText = '¡Nuestra familia crece con una princesa!';
+            }
+            
+            startConfetti();
+        }
+
+        // --- EFECTOS VISUALES (Sin cambios) ---
+        function createBubbles() {
+            const count = 30;
+            for (let i = 0; i < count; i++) {
+                const bubble = document.createElement('span');
+                const size = Math.random() * 80 + 20;
+                const xPos = Math.random() * 100;
+                const delay = Math.random() * 20;
+                const duration = Math.random() * 15 + 10;
+                const randTranslateX = (Math.random() - 0.5) * 2;
+                bubble.style.width = `${size}px`;
+                bubble.style.height = `${size}px`;
+                bubble.style.left = `${xPos}vw`;
+                bubble.style.animationDelay = `${delay}s`;
+                bubble.style.animationDuration = `${duration}s`;
+                bubble.style.setProperty('--rand-translate-x', randTranslateX);
+                bubblesContainer.appendChild(bubble);
+            }
+        }
+        
+        function startConfetti() {
+            const count = 50;
+            for (let i = 0; i < count; i++) {
+                const confetti = document.createElement('div');
+                confetti.classList.add('confetti-piece');
+                confetti.style.left = `${Math.random() * 100}vw`;
+                confetti.style.animationDelay = `${Math.random() * 5}s`;
+                confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                confettiContainer.appendChild(confetti);
+            }
+        }
+        
+        // --- INICIAR LA APLICACIÓN ---
+        
+        // Formatear la fecha de revelación para mostrarla
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+        document.getElementById('reveal-time-text').innerText = `La revelación será el ${REVEAL_DATE.toLocaleDateString('es-ES', options)} (CR)`;
+
+        createBubbles();
+        
+        // Inicializar el fondo con el primer gradiente
+        changeCountdownBackground();
+        // Cambiar el fondo cada 7 segundos (antes 5s)
+        const gradientChangeInterval = setInterval(changeCountdownBackground, 7000); 
+
+        updateCountdown();
+        const countdownInterval = setInterval(updateCountdown, 1000);
+
+    </script>
+</body>
+</html>
